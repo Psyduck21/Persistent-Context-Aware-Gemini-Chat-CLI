@@ -18,13 +18,12 @@ std::string Conversation::roleToString(Role role) const {
 }
 
 // Add a new message to the Conversation with the current timestamp
-void Conversation::addMessage(Role role,
-                              const std::string& content) {
+void Conversation::addMessage(Role role, const std::string& content) {
     Message msg;
     msg.role = roleToString(role);
     msg.content = content;
     msg.timestamp = currentTimestamp();
-
+    // Time complexity: O(1) - Adding a message to the end of the vector is constant time.            
     messages.push_back(msg);
 }
 

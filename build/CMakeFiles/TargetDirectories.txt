@@ -1,3 +1,0 @@
-/media/heisenberg/piu piu/Project/persistent_cli/build/CMakeFiles/persistent_cli.dir
-/media/heisenberg/piu piu/Project/persistent_cli/build/CMakeFiles/edit_cache.dir
-/media/heisenberg/piu piu/Project/persistent_cli/build/CMakeFiles/rebuild_cache.dir

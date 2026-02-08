@@ -1,1 +1,0 @@
-/usr/bin/c++ CMakeFiles/persistent_cli.dir/src/main.cpp.o CMakeFiles/persistent_cli.dir/src/conversation.cpp.o -o persistent_cli 

@@ -16,3 +16,7 @@ add_executable(persistent_cli
 
 # Include directory
 target_include_directories(persistent_cli PRIVATE include)
+
+# link nlohmann/json
+# find_package(nlohmann_json REQUIRED)
+# target_link_libraries(persistent_cli PRIVATE nlohmann_json::nlohmann_json)

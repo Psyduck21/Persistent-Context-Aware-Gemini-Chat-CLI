@@ -1,7 +1,11 @@
 #include <iostream>
 #include "Conversation.h"
+#include "nlohmann/json.hpp"
 
 int main() {
+    nlohmann::json j;
+    j["status"] = "success";
+    std::cout << j.dump() << std::endl;
     Conversation convo;
 
     convo.addMessage(Role::User , "Hello");

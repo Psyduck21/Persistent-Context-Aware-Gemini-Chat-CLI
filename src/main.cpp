@@ -1,19 +1,23 @@
 #include <iostream>
 #include "Conversation.h"
-#include "nlohmann/json.hpp"
 
 int main() {
-    nlohmann::json j;
-    j["status"] = "success";
-    std::cout << j.dump() << std::endl;
     Conversation convo;
 
-    convo.addMessage(Role::User , "Hello");
+    convo.addMessage(Role::User, "Hello");
     convo.addMessage(Role::Assistant, "Hi! How can I help?");
+    convo.addMessage(Role::User, "Explain Dijkstra");
 
-    std::cout<<"Conversation Size : "<<convo.size()<<"\n\n";
+    if (convo.saveToFile("../data/chat_history.json")) {
+        std::cout << "Conversation saved.\n";
+    }
 
-    for (const auto& msg : convo.getMessages()) {
+    Conversation loaded;
+    if (loaded.loadFromFile("../data/chat_history.json")) {
+        std::cout << "Conversation loaded.\n";
+    }
+
+    for (const auto& msg : loaded.getMessages()) {
         std::cout << "[" << msg.timestamp << "] "
                   << msg.role << ": "
                   << msg.content << "\n";

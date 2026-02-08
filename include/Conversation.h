@@ -7,6 +7,7 @@ Functions include adding messages, retrieving messages, clearing the conversatio
 
 #include <string>
 #include <vector>
+#include <nlohmann/json.hpp>
 
 // Using Enum class for better type safety and readability
 enum class Role
@@ -37,4 +38,10 @@ public:
     void clearMessages();
     bool empty() const;
     size_t size() const;
+
+    // Phase 2: Serialization and Deserialization functions
+    nlohmann::json toJson() const;
+    void fromJson(const nlohmann::json &j);
+    bool saveToFile(const std::string &filename) const;
+    bool loadFromFile(const std::string &filename);
 };

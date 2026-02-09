@@ -4,6 +4,8 @@ project(persistent_cli)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Put executable in project root directory
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR})
 
 # Get curl flags directly
 execute_process(
@@ -22,6 +24,7 @@ add_executable(persistent_cli
     src/main.cpp
     src/Conversation.cpp
     src/GeminiClient.cpp
+    src/CLIHandler.cpp
 )
 
 target_include_directories(persistent_cli PRIVATE

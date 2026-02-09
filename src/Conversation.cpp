@@ -104,7 +104,7 @@ bool Conversation::saveToFile(const std::string & FILENAME) const {
         out.close();
 
         // removing the old file
-        // std::remove(FILENAME.c_str());
+        std::remove(FILENAME.c_str());
 
         // if no error - renaming the tempfile to original file
         std::rename(tempfile.c_str(), FILENAME.c_str());
@@ -135,4 +135,5 @@ bool Conversation::loadFromFile(const std::string& FILENAME){
     }
 }
 
-// PHASE 3 - Gemini API formatting
+
+

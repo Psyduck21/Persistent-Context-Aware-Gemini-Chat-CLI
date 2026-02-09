@@ -16,7 +16,7 @@ std::string Conversation::currentTimestamp() const
 
 // Convert Role enum to string for storage in Message struct
 std::string Conversation::roleToString(Role role) const {
-    return (role == Role::User) ? "User" : "Assistant";
+    return (role == Role::User) ? "user" : "model";
 }
 
 // Add a new message to the Conversation with the current timestamp
@@ -116,7 +116,6 @@ bool Conversation::saveToFile(const std::string & FILENAME) const {
 }
 
 //laoding th file from disk
-
 bool Conversation::loadFromFile(const std::string& FILENAME){
     try{
         std::ifstream in(FILENAME);
@@ -136,3 +135,4 @@ bool Conversation::loadFromFile(const std::string& FILENAME){
     }
 }
 
+// PHASE 3 - Gemini API formatting

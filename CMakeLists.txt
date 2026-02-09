@@ -1,22 +1,39 @@
 cmake_minimum_required(VERSION 3.10)
 
-# Project name
 project(persistent_cli)
 
-# Use modern C++
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
 
-# Executable
-add_executable(persistent_cli
-    src/main.cpp
-    src/conversation.cpp
+# Get curl flags directly
+execute_process(
+    COMMAND curl-config --cflags
+    OUTPUT_VARIABLE CURL_CFLAGS
+    OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-# Include directory
-target_include_directories(persistent_cli PRIVATE include)
+execute_process(
+    COMMAND curl-config --libs
+    OUTPUT_VARIABLE CURL_LIBS
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 
-# link nlohmann/json
-# find_package(nlohmann_json REQUIRED)
-# target_link_libraries(persistent_cli PRIVATE nlohmann_json::nlohmann_json)
+add_executable(persistent_cli
+    src/main.cpp
+    src/Conversation.cpp
+    src/GeminiClient.cpp
+)
+
+target_include_directories(persistent_cli PRIVATE
+    include
+)
+
+# IMPORTANT: compile flags
+target_compile_options(persistent_cli PRIVATE
+    ${CURL_CFLAGS}
+)
+
+# IMPORTANT: link flags
+target_link_libraries(persistent_cli PRIVATE
+    ${CURL_LIBS}
+)

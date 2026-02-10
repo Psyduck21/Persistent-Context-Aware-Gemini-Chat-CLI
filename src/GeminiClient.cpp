@@ -34,7 +34,7 @@ GeminiClient::GeminiClient()
     {
         apiKey = env_api_key;
     }
-    // std::cout<<apiKey<<"\n;
+    // std::cout<<apiKey<<"\n";
 }
 
 std::string GeminiClient::sendMessage(const nlohmann::json &conversation) const
@@ -97,7 +97,7 @@ std::string GeminiClient::sendMessage(const nlohmann::json &conversation) const
 }
 
 // Convert the Conversation to Gemini API format
-nlohmann::json GeminiClient::toGeminiFormat() const {
+nlohmann::json GeminiClient::toGeminiFormat(Conversation& convo) const {
     nlohmann::json j;
     j["contents"] = nlohmann::json::array();
 

@@ -12,8 +12,8 @@ Functions include adding messages, retrieving messages, clearing the conversatio
 // Using Enum class for better type safety and readability
 enum class Role
 {
-    User,
-    Assistant
+    user,
+    model
 };
 
 struct Message

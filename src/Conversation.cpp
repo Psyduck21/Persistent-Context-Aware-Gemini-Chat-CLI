@@ -30,7 +30,7 @@ std::string Conversation::currentTimestamp() const
 // Convert Role enum to string for storage in Message struct
 std::string Conversation::roleToString(Role role)
 {
-    return (role == Role::User) ? "user" : "model";
+    return (role == Role::user) ? "user" : "model";
 }
 
 // Add a new message to the Conversation with the current timestamp

@@ -37,7 +37,7 @@ int main()
             continue;
         }
 
-        convo.addMessage(Role::User, input);
+        convo.addMessage(Role::user, input);
 
         // Ensure Gemini client available
         if (!client) {
@@ -60,11 +60,11 @@ int main()
 
         try
         {
-            nlohmann::json geminiInput = client->toGeminiFormat();
+            nlohmann::json geminiInput = client->toGeminiFormat(convo);
             std::string response = client->sendMessage(geminiInput);
             std::string reply = client->extractGeminiReply(response);
             std::cout << "Gemini: " << reply << "\n";
-            convo.addMessage(Role::Assistant, reply);
+            convo.addMessage(Role::model, reply);
             convo.saveToFile("./data/chat_history.json");
         }
         catch (const std::exception &e)

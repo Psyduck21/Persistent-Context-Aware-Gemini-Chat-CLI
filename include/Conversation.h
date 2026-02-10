@@ -30,7 +30,7 @@ private:
     // Vector to store the messages in the conversation in the order they were added in memory.
     std::vector<Message> messages;
     std::string currentTimestamp() const;
-    std::string roleToString(Role role) const;
+    static std::string roleToString(Role role);
 
 public:
     void addMessage(Role role, const std::string &content);
@@ -41,7 +41,9 @@ public:
 
     // Phase 2: Serialization and Deserialization functions
     nlohmann::json toJson() const;
-    void fromJson(const nlohmann::json &j);
-    bool saveToFile(const std::string &filename) const;
-    bool loadFromFile(const std::string &filename);
+    void fromJson(const nlohmann::json &jsondata);
+    bool saveToFile(const std::string &FILENAME) const;
+    bool loadFromFile(const std::string &FILENAME);
+    void printHistory() const;
+    void exportToMarkdown(const std::string &FILENAME) const;
 };

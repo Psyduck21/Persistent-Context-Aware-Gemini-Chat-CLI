@@ -4,6 +4,10 @@
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include "Conversation.h"
+#include <stdexcept>
+#include <cstring>
+#include <algorithm>
+#include <cctype>
 
 static size_t writeCallback(
     void *contents,
@@ -21,17 +25,19 @@ GeminiClient::GeminiClient()
 {
     const char *env_var_name = "GEMINI_API_KEY";
     const char *env_api_key = std::getenv(env_var_name);
+    // Do not throw in constructor; mark client as not configured if key absent.
     if (!env_api_key)
     {
-        throw std::runtime_error(
-            "GEMINI_API_KEY not found. "
-            "Load it using `source .env` or export it in the shell.");
+        apiKey.clear();
     }
-    apiKey = env_api_key;
-    // std::cout<<apiKey<<std::endl;
+    else
+    {
+        apiKey = env_api_key;
+    }
+    // std::cout<<apiKey<<"\n;
 }
 
-std::string GeminiClient::sendMessage(const nlohmann::json &conversation)
+std::string GeminiClient::sendMessage(const nlohmann::json &conversation) const
 {
     // initialize curl
     CURL *curl = curl_easy_init();
@@ -39,8 +45,19 @@ std::string GeminiClient::sendMessage(const nlohmann::json &conversation)
     {
         throw std::runtime_error("Failed to initialize CURL");
     }
-    // preare response string
+    // RAII wrappers for cleanup
+    struct CurlHandle {
+        CURL* c;
+        explicit CurlHandle(CURL* c):c(c){}
+        ~CurlHandle(){ if(c) curl_easy_cleanup(c); }
+    } guardCurl(curl);
+
     std::string response;
+
+    // ensure API key present
+    if (apiKey.empty()) {
+        throw std::runtime_error("GEMINI_API_KEY is not configured; cannot send requests");
+    }
 
     // set url
     std::string url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey;
@@ -49,6 +66,12 @@ std::string GeminiClient::sendMessage(const nlohmann::json &conversation)
     // set headers
     struct curl_slist *header = nullptr;
     header = curl_slist_append(header, "Content-Type: application/json");
+    // RAII for header
+    struct SlistGuard {
+        struct curl_slist* l;
+        explicit SlistGuard(struct curl_slist* l):l(l){}
+        ~SlistGuard(){ if(l) curl_slist_free_all(l); }
+    } guardHeader(header);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
 
     // set post data
@@ -66,23 +89,26 @@ std::string GeminiClient::sendMessage(const nlohmann::json &conversation)
     CURLcode res = curl_easy_perform(curl);
     if (res != CURLE_OK)
     {
-        curl_easy_cleanup(curl);
-        throw std::runtime_error("CURL request failed: " + std::string(curl_easy_strerror(res)));
+        throw std::runtime_error(std::string("CURL request failed: ") + curl_easy_strerror(res));
     }
-    // cleanup
-    curl_slist_free_all(header);
-    curl_easy_cleanup(curl);
+
+    // success: guards will clean up
     return response;
 }
 
 // Convert the Conversation to Gemini API format
-nlohmann::json GeminiClient::toGeminiFormat(const Conversation& convo) const {
+nlohmann::json GeminiClient::toGeminiFormat() const {
     nlohmann::json j;
     j["contents"] = nlohmann::json::array();
 
     for (const auto& msg : convo.getMessages()) {
         nlohmann::json content;
-        content["role"] = msg.role;
+        // Normalize role strings to Gemini expected values
+        std::string roleLower = msg.role;
+        std::transform(roleLower.begin(), roleLower.end(), roleLower.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        if (roleLower == "user") content["role"] = "user";
+        else content["role"] = "assistant";
 
         // Parts MUST be an array
         content["parts"] = nlohmann::json::array({
@@ -96,20 +122,56 @@ nlohmann::json GeminiClient::toGeminiFormat(const Conversation& convo) const {
 }
 
 // Extract the assistant's reply from the Gemini API response
-std::string GeminiClient::extractGeminiReply(const std::string& responseStr) {
-    auto json = nlohmann::json::parse(responseStr);
+std::string GeminiClient::extractGeminiReply(const std::string& responseStr) const {
+    try {
+        auto json = nlohmann::json::parse(responseStr);
 
-    if (!json.contains("candidates") || json["candidates"].empty()) {
-        throw std::runtime_error("No candidates in Gemini response");
+        // Check for API error response first
+        if (json.contains("error")) {
+            const auto& error = json["error"];
+            int code = error.value("code", 0);
+            std::string message = error.value("message", "Unknown error");
+            std::string status = error.value("status", "UNKNOWN");
+
+            // Handle rate limiting (429)
+            if (code == 429 || status == "RESOURCE_EXHAUSTED") {
+                std::string detail = "API Rate Limit Exceeded (Free Tier: 20 requests/day per model)\n";
+                detail += "Message: " + message + "\n";
+                
+                // Extract retry information if available
+                if (error.contains("details")) {
+                    for (const auto& detail_item : error["details"]) {
+                        if (detail_item.contains("retryDelay")) {
+                            detail += "Retry after: " + detail_item["retryDelay"].get<std::string>();
+                        }
+                    }
+                }
+                throw std::runtime_error(detail);
+            }
+
+            // Generic API error
+            std::string errorMsg = "Gemini API Error (Code " + std::to_string(code) + "): " + message;
+            throw std::runtime_error(errorMsg);
+        }
+
+        if (!json.contains("candidates") || json["candidates"].empty()) {
+            throw std::runtime_error("No candidates in Gemini response");
+        }
+
+        const auto& candidate = json["candidates"][0];
+
+        if (!candidate.contains("content") ||
+            !candidate["content"].contains("parts") ||
+            candidate["content"]["parts"].empty()) {
+            throw std::runtime_error("Invalid Gemini response format");
+        }
+
+        return candidate["content"]["parts"][0]["text"].get<std::string>();
+    } catch (const nlohmann::json::exception &e) {
+        throw std::runtime_error(std::string("Failed to parse Gemini response JSON: ") + e.what());
     }
+}
 
-    const auto& candidate = json["candidates"][0];
-
-    if (!candidate.contains("content") ||
-        !candidate["content"].contains("parts") ||
-        candidate["content"]["parts"].empty()) {
-        throw std::runtime_error("Invalid Gemini response format");
-    }
-
-    return candidate["content"]["parts"][0]["text"].get<std::string>();
+bool GeminiClient::isConfigured() const {
+    return !apiKey.empty();
 }

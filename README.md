@@ -52,12 +52,6 @@ Persistent AI Chat CLI is a modern C++17 application designed for developers who
 ```bash
 # Ubuntu/Debian
 sudo apt-get install build-essential cmake libcurl4-openssl-dev
-
-# RHEL/CentOS/Fedora
-sudo dnf install gcc-c++ cmake libcurl-devel
-
-# macOS
-brew install cmake curl
 ```
 
 ---
@@ -67,7 +61,7 @@ brew install cmake curl
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/persistent-ai-chat-cli.git
+git clone https://github.com/psyduck21/persistent-ai-chat-cli.git
 cd persistent-ai-chat-cli
 ```
 
@@ -89,7 +83,7 @@ CMake will automatically detect dependencies and configure the build system.
 ### 4. Build the Application
 
 ```bash
-make -j$(nproc)
+make
 ```
 
 The compiled executable `persistent_cli` will be placed in the project root directory.
@@ -111,14 +105,8 @@ You should see the command help and prompt waiting for input.
 
 The application requires a Google Gemini API key for operation. Set it via environment variable:
 
-```bash
-export GEMINI_API_KEY="your-api-key-here"
-```
-
-**For Persistent Sessions**: Add to your shell configuration file (~/.bashrc, ~/.zshrc, etc.):
-
-```bash
-export GEMINI_API_KEY="your-api-key-here"
+```.env
+GEMINI_API_KEY="your-api-key-here"
 ```
 
 Obtain your API key from [Google AI Studio](https://aistudio.google.com/apikey).
@@ -136,6 +124,9 @@ To use a different location, modify the file path in the command execution (futu
 ### Starting the Application
 
 ```bash
+source +a
+.env
+source -a
 ./persistent_cli
 ```
 
@@ -305,7 +296,6 @@ Additional verification and compliance documents available in `documentation/` s
 ### Example 1: Basic Chat Session
 
 ```bash
-$ export GEMINI_API_KEY="your-key-here"
 $ ./persistent_cli
 
 Commands: /new, /load <file>, /export <file>, /history, /exit

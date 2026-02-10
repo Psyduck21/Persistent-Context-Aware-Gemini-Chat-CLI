@@ -60,7 +60,7 @@ int main()
 
         try
         {
-            nlohmann::json geminiInput = client->toGeminiFormat(convo);
+            nlohmann::json geminiInput = client->toGeminiFormat();
             std::string response = client->sendMessage(geminiInput);
             std::string reply = client->extractGeminiReply(response);
             std::cout << "Gemini: " << reply << "\n";

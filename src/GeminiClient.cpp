@@ -108,7 +108,7 @@ nlohmann::json GeminiClient::toGeminiFormat(Conversation& convo) const {
         std::transform(roleLower.begin(), roleLower.end(), roleLower.begin(),
                        [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
         if (roleLower == "user") content["role"] = "user";
-        else content["role"] = "assistant";
+        else content["role"] = "model";
 
         // Parts MUST be an array
         content["parts"] = nlohmann::json::array({
@@ -117,7 +117,6 @@ nlohmann::json GeminiClient::toGeminiFormat(Conversation& convo) const {
 
         j["contents"].push_back(content);
     }
-
     return j;
 }
 

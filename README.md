@@ -124,9 +124,9 @@ To use a different location, modify the file path in the command execution (futu
 ### Starting the Application
 
 ```bash
-source +a
-.env
 source -a
+.env
+source +a
 ./persistent_cli
 ```
 

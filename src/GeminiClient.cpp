@@ -54,7 +54,7 @@ std::string GeminiClient::sendMessage(const nlohmann::json &conversation) const
 
     std::string response;
 
-    // ensure API key present
+    // ensure API key presentloadEnvFile(".env");
     if (apiKey.empty()) {
         throw std::runtime_error("GEMINI_API_KEY is not configured; cannot send requests");
     }
@@ -66,6 +66,10 @@ std::string GeminiClient::sendMessage(const nlohmann::json &conversation) const
     // set headers
     struct curl_slist *header = nullptr;
     header = curl_slist_append(header, "Content-Type: application/json");
+    
+    // std::string authHeader = "Authorization: Bearer " + apiKey;
+    // header = curl_slist_append(header, authHeader.c_str());
+
     // RAII for header
     struct SlistGuard {
         struct curl_slist* l;
@@ -83,7 +87,7 @@ std::string GeminiClient::sendMessage(const nlohmann::json &conversation) const
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
 
     // set timeout
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 0L);
 
     // perform request
     CURLcode res = curl_easy_perform(curl);
@@ -96,29 +100,6 @@ std::string GeminiClient::sendMessage(const nlohmann::json &conversation) const
     return response;
 }
 
-// Convert the Conversation to Gemini API format
-nlohmann::json GeminiClient::toGeminiFormat(Conversation& convo) const {
-    nlohmann::json j;
-    j["contents"] = nlohmann::json::array();
-
-    for (const auto& msg : convo.getMessages()) {
-        nlohmann::json content;
-        // Normalize role strings to Gemini expected values
-        std::string roleLower = msg.role;
-        std::transform(roleLower.begin(), roleLower.end(), roleLower.begin(),
-                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
-        if (roleLower == "user") content["role"] = "user";
-        else content["role"] = "model";
-
-        // Parts MUST be an array
-        content["parts"] = nlohmann::json::array({
-            { { "text", msg.content } }
-        });
-
-        j["contents"].push_back(content);
-    }
-    return j;
-}
 
 // Extract the assistant's reply from the Gemini API response
 std::string GeminiClient::extractGeminiReply(const std::string& responseStr) const {

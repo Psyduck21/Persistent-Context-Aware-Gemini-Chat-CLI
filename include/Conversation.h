@@ -44,6 +44,10 @@ public:
     void fromJson(const nlohmann::json &jsondata);
     bool saveToFile(const std::string &FILENAME) const;
     bool loadFromFile(const std::string &FILENAME);
+
+    nlohmann::json toGeminiFormat() const;
+
+
     void printHistory() const;
     void exportToMarkdown(const std::string &FILENAME) const;
 };

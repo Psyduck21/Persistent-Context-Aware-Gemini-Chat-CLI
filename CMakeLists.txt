@@ -25,6 +25,7 @@ add_executable(persistent_cli
     src/Conversation.cpp
     src/GeminiClient.cpp
     src/CLIHandler.cpp
+    src/Envhandler.cpp
 )
 
 target_include_directories(persistent_cli PRIVATE

@@ -177,6 +177,32 @@ bool Conversation::loadFromFile(const std::string &FILENAME)
     }
 }
 
+
+// Convert the Conversation to Gemini API format
+nlohmann::json Conversation::toGeminiFormat() const {
+    nlohmann::json j;
+    j["contents"] = nlohmann::json::array();
+
+    for (const auto& msg : messages) {
+        nlohmann::json content;
+        // Normalize role strings to Gemini expected values
+        std::string roleLower = msg.role;
+        std::transform(roleLower.begin(), roleLower.end(), roleLower.begin(),
+                       [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+        if (roleLower == "user") content["role"] = "user";
+        else content["role"] = "model";
+
+        // Parts MUST be an array
+        content["parts"] = nlohmann::json::array({
+            { { "text", msg.content } }
+        });
+
+        j["contents"].push_back(content);
+    }
+    return j;
+}
+
+
 // phase 4 - Command handling and conversation history printing
 void Conversation::printHistory() const
 {
@@ -214,9 +240,10 @@ void Conversation::exportToMarkdown(const std::string &FILENAME) const
             std::string roleHeader =
                 (msg.role == "user" || msg.role == "User")
                     ? "User"
-                    : "Assistant";
+                    : "Gemini";
 
             out << "## " << roleHeader << "\n";
+            out << "_[" << msg.timestamp << "]_\n\n";
             out << msg.content << "\n\n";
         }
         out.close();
